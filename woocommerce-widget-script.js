@@ -62,11 +62,11 @@ function main()
    jQuery(document).ready(function($)
    {
        /* Get 'embed' parameter from the query */
-       var widget = window.widget_embed;
+       var widget = window.embedTest;
        var domain = encodeURIComponent(window.document.location);
 
        /* Set 'height' and 'width' according to the content type */
-       var iframeContent = '<iframe style="overflow-y: hidden;" height="5000" width="1000" frameborder="0" border="0" cellspacing="0" scrolling="no" src="http://dev.markporterlive.com/' + '?zh_embed=' + widget + '&zh_domain=' + domain + '&timestamp=' + Date.now() + '"></iframe>';
+       var iframeContent = '<iframe style="overflow-y: hidden;" height="1000" width="1000" frameborder="0" border="0" cellspacing="0" scrolling="yes" src="http://dev.markporterlive.com/' + '?zh-embed=' + widget + '&zh-domain=' + domain + '&timestamp=' + Date.now() + '"></iframe>';
 
        $("#embed-widget-container").html(iframeContent);
    });

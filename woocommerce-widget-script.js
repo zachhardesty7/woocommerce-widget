@@ -12,64 +12,43 @@
  * 1. Upload the woocommerce-wdiget-script.js to your site's root folder. (Usually home/[username]/public_html or home/[username]/www)
  */
 
-(function() {
+// TODO: implement ajax
+// $('.zh-cart-remove').click(function() {
+//
+// 	$.ajax({
+// 		 url: '/wp-content/plugins/woocommerce-widget/ajax-handler.php',
+// 		 type: 'post',
+// 		 data: { action : 'remove_cart_item', id : this.parentElement.parentElement.id },
+// 		 success: function(data, status) {
+// 			 $( "#" + data ).remove();
+// 		 },
+// 		 error: function(xhr, desc, err) {
+// 			 console.log(xhr);
+// 			 console.log("Details: " + desc + "\nError:" + err);
+// 		 }
+// 	 });
+// })
 
-// Localize jQuery variable
-var jQuery;
-
-/* Load jQuery if not present */
-if (window.jQuery === undefined || window.jQuery.fn.jquery !== '1.7.2')
-{
-   var script_tag = document.createElement('script');
-   script_tag.setAttribute("type","text/javascript");
-   script_tag.setAttribute("src",
-       "http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js");
-   if (script_tag.readyState)
-   {
-     script_tag.onreadystatechange = function ()
-     { // For old versions of IE
-         if (this.readyState == 'complete' || this.readyState == 'loaded')
-         {
-             scriptLoadHandler();
-         }
-     };
-   }
-   else
-   {
-     script_tag.onload = scriptLoadHandler;
-   }
-
-   (document.getElementsByTagName("head")[0] || document.documentElement).appendChild(script_tag);
-}
-else
-{
-   // The jQuery version on the window is the one we want to use
-   jQuery = window.jQuery;
-   main();
-}
-
-
-/* Called once jQuery has loaded */
-function scriptLoadHandler()
-{
-   jQuery = window.jQuery.noConflict(true);
-   main();
-}
-
-/* Our Start function */
-function main()
-{
-   jQuery(document).ready(function($)
-   {
-       /* Get 'embed' parameter from the query */
-       var widget = window.embedTest;
-       var domain = encodeURIComponent(window.document.location);
-
-       /* Set 'height' and 'width' according to the content type */
-       var iframeContent = '<iframe style="overflow-y: hidden;" height="1000" width="1000" frameborder="0" border="0" cellspacing="0" scrolling="yes" src="http://dev.markporterlive.com/' + '?zh-embed=' + widget + '&zh-domain=' + domain + '&timestamp=' + Date.now() + '"></iframe>';
-
-       $("#embed-widget-container").html(iframeContent);
-   });
-}
-
-})();
+// REVIEW: cannot be implemented wo stealing phpsessid from keynoteseries
+$('#kns-post').click(function() {
+	var jsId = document.cookie.match(/JSESSIONID=[^;]+/);
+	if(jsId != null) {
+		if (jsId instanceof Array)
+		jsId = jsId[0].substring(11);
+		else
+		jsId = jsId.substring(11);
+	}
+	console.log(jsId);
+	$.ajax({
+		 url: '/wp-content/plugins/woocommerce-widget/ajax-handler.php',
+		 type: 'post',
+		 data: { action : 'knspost', cart_add : 1 },
+		 success: function(data, status) {
+			 console.log(data);
+		 },
+		 error: function(xhr, desc, err) {
+			 console.log(xhr);
+			 console.log("Details: " + desc + "\nError:" + err);
+		 }
+	 });
+})

@@ -30,6 +30,7 @@ class ZH_WC_Widget {
 	public function __construct() {
 		add_action( 'template_redirect', array($this, 'catch_widget_query' ));
 		add_filter( 'query_vars', array($this, 'add_query_vars' ));
+		add_action( 'woocommerce_checkout_update_order_meta', array($this, 'track_affiliate' ), 10, 2);
 	}
 
 	// TODO: include a banner that is displayed on first install
@@ -46,6 +47,12 @@ class ZH_WC_Widget {
 		return $aVars;
 	}
 
+	public function track_affiliate( $order_id, $posted ) {
+		$order = wc_get_order( $order_id );
+    $order->update_meta_data( 'zh_affiliate', $this->affiliate );
+    $order->save();
+	}
+
 	public function cartBackToAffiliateStorePage() {
 		?>
 			<div class="text-left">
@@ -59,15 +66,11 @@ class ZH_WC_Widget {
 	 * rest of WordPress from loading and do our thing, whatever
 	 * that may be.
 	 */
-	public function catch_widget_query()
-	{
-
+	public function catch_widget_query() {
 		global $woocommerce, $woocommerce_loop, $product, $post;
-
 
 		/* If no 'zh-widget' parameter found, return */
     if(!get_query_var('zh-widget')) return;
-
 
     /* 'zh-widget' variable is set, export any content you like */
     if(get_query_var('zh-widget') == 'store') {
@@ -96,14 +99,7 @@ class ZH_WC_Widget {
 			$i = 0;
 
 			 {
-
-				// REVIEW: cannot be implemented wo stealing phpsessid from keynoteseries
 				?>
-				<a href="#" id="kns-post" class="zh-button">Initiate POST</a>
-
-
-
-
 
 				<div class="cart row d-flex justify-content-end py-3">
 					<a class="zh-button" href="<?php echo WC()->cart->get_cart_url(); ?>?zh-widget=cart">
@@ -111,8 +107,8 @@ class ZH_WC_Widget {
 					</a>
 				</div>
 
-				<div class="row">
-
+				<!-- Affiliate Courses -->
+				<div class="row py-3">
 						<?php foreach ($zh_products as $zh_product) : ?>
 						<div class="col-3 text-center">
 							<a href="<?php echo $zh_product->get_permalink(); ?>?zh-widget=product&amp;zh-product-id=<?php echo $zh_product->get_id(); ?>" class="product-link">
@@ -124,10 +120,53 @@ class ZH_WC_Widget {
 					</div>
 						<?php
 							$i++;
-    					if ($i%4 == 0) echo '</div><div class="row">';
+    					if ($i%4 == 0) echo '</div><div class="row py-3">';
 						endforeach;
 						?>
+				</div>
 
+<?php
+$zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
+?>
+				<!-- Keynote Courses -->
+				<h3>Keynote Courses</h3>
+				<p>Choose a state and Keynote Course below to be redirected to the Keynote Series page</p>
+				<!-- State dropdown selector w encoded data -->
+				<form id="stateSelect" name="stateSelectDropdown">
+					<p>
+						<select id="stateSelectDropdown" name="state">
+							<option value="">Select state:</option>
+							<option value="ArkansasAssociationofRealtors">Arkansas</option>
+							<option value="ConnecticutAssociationofRealtors" data-course-excl-post-id="12390">Connecticut</option>
+							<option value="IllinoisRealtors" data-course-excl-post-id="12370,12390" data-course-gri-core="12391,12377,12395">Illinois</option>
+							<option value="IowaRealtors">Iowa</option>
+							<option value="KEYNOTESERIESOnline">Kansas</option>
+							<option value="kreef" data-course-excl-post-id="12390,12391">Kentucky</option>
+							<option value="mississippirealtorinstitute" data-course-excl-post-id="12390,12391">Mississippi</option>
+							<option value="missouri">Missouri</option>
+							<option value="Nebraska" data-course-excl-post-id="12390,12391">Nebraska</option>
+							<option value="NorthCarolinaAssociationofRealtors" data-course-gri-core="12375,12391,12393,12395" data-course-gri-elective="12370,12373,12377,12397">North Carolina</option>
+							<option value="SouthDakotaAssociationofRealtors">South Dakota</option>
+							<option value="TexasAssociationofRealtors" data-course-excl-post-id="12391">Texas</option>
+							<option value="VirginiaAssociationofREALTORS" data-course-excl-post-id="12373,12390,12391,12377,12393,12395,12397">Virginia</option>
+							<option value="WashingtonREALTORS" data-course-excl-post-id="12390,12391">Washington</option>
+							<option value="keynoteseriesprofessionaldevelopment">Other State</option>
+						</select>
+					</p>
+				</form>
+				<div class="row py-3">
+						<?php foreach ($zh_kn_products as $zh_kn_product) : ?>
+						<div class="col-3 text-center">
+							<a href="/#" class="kn-product-link" id="product-<?php echo $zh_kn_product->get_id(); ?>" target="_blank">
+								<p><?php echo $zh_kn_product->get_image(); ?></p>
+								<h5 class="product-title"><?php echo $zh_kn_product->get_title(); ?></h5>
+							</a>
+					</div>
+						<?php
+							$i++;
+							if ($i%4 == 0) echo '</div><div class="row py-3">';
+						endforeach;
+						?>
 				</div>
 
 				<?php

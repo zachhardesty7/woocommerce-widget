@@ -50,38 +50,70 @@
 	/* Our Start function */
 	function main() {
 		jQuery(document).ready(function($) {
-			var zhWidgetInput = document.getElementById("zh-wc-widget");
-			var zhWidget = zhWidgetInput.getAttribute("data-zh-widget");
-			// zhAffiliate also refers to category until properly implemented
-			var zhAffiliate = zhWidgetInput.getAttribute("data-zh-affiliate");
-			var zhCategory = zhWidgetInput.getAttribute("data-zh-category");
-			var zhTag = zhWidgetInput.getAttribute("data-zh-tag");
-			var zhProductId = zhWidgetInput.getAttribute("data-zh-product-id");
-			var zhColumns = 4;
+			// capture snippet parameters
+			let widgetInput = document.getElementById("wc-widget");
+			let widget = widgetInput.getAttribute("data-widget");
+			// Affiliate refers to category until properly implemented
+			let affiliate = widgetInput.getAttribute("data-affiliate");
+			let category = widgetInput.getAttribute("data-category");
+			let tag = widgetInput.getAttribute("data-tag");
+			let productId = widgetInput.getAttribute("data-product-id");
+			let columns = widgetInput.getAttribute("data-columns");
+			let ref = encodeURIComponent(window.document.location);
+			let dynamic = widgetInput.getAttribute("data-dynamic");
+			let height = widgetInput.getAttribute("data-height");
+			let width = widgetInput.getAttribute("data-width");
 
-			var zhRefUrl = encodeURIComponent(window.document.location);
-			var zhHeight = zhWidgetInput.getAttribute("data-zh-height");
-			var zhWidth = zhWidgetInput.getAttribute("data-zh-width");
+			let iframeContent = '<iframe id="wc-widget-widget"';
+			if (dynamic) iframeContent += 'style="border: none; width: 100%" scrolling="no"';
+			else iframeContent += 'style="border: none" ';
+			if (height) iframeContent += 'height="' + height + '" ';
+			if (width) iframeContent += 'width="' + width + '" ';
+			iframeContent += 'src="https://dev.markporterlive.com/?widget=' + widget;
+			if (affiliate) iframeContent += "&affiliate=" + affiliate;
+			if (category) iframeContent += "&category=" + category;
+			if (tag) iframeContent += "&tag=" + tag;
+			if (productId) iframeContent += "&product-id=" + productId;
+			if (columns == "dynamic") {
+				let width = $("#wc-widget").width();
+				if (width >= 1365 - 16) {
+					columns = 6;
+				} else if (width >= 925 - 16) {
+					columns = 4;
+				} else if (width >= 705 - 16) {
+					columns = 3;
+				} else if (width >= 485 - 16) {
+					columns = 2;
+				} else if (width >= 200 - 16) {
+					columns = 1;
+				}
+				iframeContent += "&columns=" + columns;
+			} else if (columns) {
+				iframeContent += "&columns=" + columns;
+			}
+			if (ref) iframeContent += "&ref=" + ref;
 
-			var iframeContent = '<iframe style="border: none" height="' + zhHeight + '" width="' + zhWidth + '"src="http://dev.markporterlive.com/?zh-widget=' + zhWidget;
-			if (zhAffiliate) iframeContent += "&zh-affiliate=" + zhAffiliate;
-			if (zhCategory) iframeContent += "&zh-category=" + zhCategory;
-			if (zhTag) iframeContent += "&zh-tag=" + zhTag;
-			if (zhProductId) iframeContent += "&zh-product-id=" + zhProductId;
-			if (zhRefUrl) iframeContent += "&zh-ref-url=" + zhRefUrl;
-			console.log(iframeContent);
+			iframeContent += '"></iframe>';
 
-			iframeContent += '&timestamp=' + Date.now() + '"></iframe>';
+			// @credit https://github.com/davidjbradshaw/iframe-resizer
+			if (dynamic) {
+				let script = document.createElement( 'script' );
+				script.type = 'text/javascript';
+				script.src = 'https://dev.markporterlive.com/wp-content/plugins/woocommerce-widget/iframeResizer.min.js';
+				$("body")[0].appendChild( script );
+			}
 
-			$("#zh-wc-widget").after(iframeContent);
+			$("#wc-widget").after(iframeContent);
+
+			// @credit https://github.com/davidjbradshaw/iframe-resizer
+			if (dynamic) {
+				$('#wc-widget-widget').on('load', function(){
+					iFrameResize({heightCalculationMethod: 'lowestElement'}, '#wc-widget-widget');
+				});
+			}
+
 
 		});
 	}
 
 })();
-
-/**
- * Shortcode to place on website:
- * <a class="twitter-timeline" data-width="1000" data-height="1000" data-theme="dark" data-link-color="#E81C4F" href="https://twitter.com/TwitterDev">Tweets by TwitterDev</a>
- * <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
- ***/

@@ -13,7 +13,7 @@
  */
 
 // TODO: implement ajax
-// $('.zh-cart-remove').click(function() {
+// $('.cart-remove').click(function() {
 //
 // 	$.ajax({
 // 		 url: '/wp-content/plugins/woocommerce-widget/ajax-handler.php',
@@ -29,50 +29,29 @@
 // 	 });
 // })
 
-// REVIEW: cannot be implemented wo stealing phpsessid from keynoteseries
-// $('#kns-post').click(function() {
-// 	var jsId = document.cookie.match(/JSESSIONID=[^;]+/);
-// 	if(jsId != null) {
-// 		if (jsId instanceof Array)
-// 		jsId = jsId[0].substring(11);
-// 		else
-// 		jsId = jsId.substring(11);
-// 	}
-// 	console.log(jsId);
-// 	$.ajax({
-// 		 url: '/wp-content/plugins/woocommerce-widget/ajax-handler.php',
-// 		 type: 'post',
-// 		 data: { action : 'knspost', cart_add : 1 },
-// 		 success: function(data, status) {
-// 			 console.log(data);
-// 		 },
-// 		 error: function(xhr, desc, err) {
-// 			 console.log(xhr);
-// 			 console.log("Details: " + desc + "\nError:" + err);
-// 		 }
-// 	 });
-// })
-
 jQuery(document).ready(function($) {
+	// initialize constants and selectors
 	let urlDef = "http://keynotecommunity.com/take-course/";
 	let urlBase = "https://www.keynoteseries.com/course_details/";
 	let keynoteCatProducts = $(".kn-product-link");
+	let queryString = "?code=";
+	let affiliate = $('body').data('affiliate');
 
 	// dynamic link generation for keynote products
 	function setCoursesUrl(url) {
 		for (let i = 0; i < keynoteCatProducts.length; i++) {
-			let output = url;
+			let output = url + queryString + affiliate;
 			// append encoded product title (course) to @url
 			if ($('#stateSelectDropdown').val()) {
 				let urlCourse = encodeURI(keynoteCatProducts[i].lastElementChild.textContent);
-				output = url + "\/" + urlCourse;
+				output = url + "\/" + urlCourse + queryString + affiliate;
 			}
 			keynoteCatProducts[i].href = output;
 			keynoteCatProducts[i].target = "_blank"
 		}
 	}
 
-	// set link to default on first run
+	// set links to default on first run
 	setCoursesUrl(urlDef);
 
 	// on change handler for dropdown selector
@@ -84,11 +63,13 @@ jQuery(document).ready(function($) {
 		$('#cenoticemain').remove();
 		// remove individual CE notice on disabled courses
 		$('.cenotice').remove();
+		// add "grow" hover effect
+		$('.kn-product-link p:first-child').addClass('hvr-grow');
 
 		// if select "Select state:" set default URL
 		if (!$('#stateSelectDropdown').val()) {
 			setCoursesUrl(urlDef);
-		// else append value of option to URL and set
+		// else append value of dropdown option to URL and set
 		} else {
 			let urlPartner = $('#stateSelectDropdown').val();
 			let urlNew = urlBase + urlPartner;
@@ -97,7 +78,7 @@ jQuery(document).ready(function($) {
 			// TODO:
 			// if "Other State" selected, display main CE notice
 			if ($('#stateSelectDropdown').val() == "keynoteseriesprofessionaldevelopment") {
-				$('<p>These courses do not offer CE credit and are for professional development only.</p>').attr('id', 'cenoticemain').insertAfter($('#stateSelect'));
+				$('<p style="color:#c6000c">These courses do not offer CE credit and are for professional development only.</p>').attr('id', 'cenoticemain').insertAfter($('#stateSelect'));
 			}
 
 			// grab product IDs of disabled (not offered) courses from data-*
@@ -105,13 +86,15 @@ jQuery(document).ready(function($) {
 			// if only 1 (returned integer)
 			if (Number.isInteger(courseExclPostId)) {
 				// append <style>, greys out all children of href
-				let courseId = "#product" + courseExclPostId;
+				let courseId = "#product-" + courseExclPostId;
 				let nodeString = "<style id='keynoteCourseDisable'> " + courseId + " > * {opacity: .3} </style>"
 				$(document.head).append(nodeString);
 				// disable href
 				$(courseId).removeAttr('href');
+				// remove "grow" hover effect
+				$(courseId + " p:first").removeClass('hvr-grow');
 				// notice below each product
-				$(courseId).after($('<p>Course not for CE credit\nPlease select "Other State"</p>').addClass("cenotice"));
+				$(courseId).after($('<p style="color:#c6000c">Course not for CE credit\nPlease select "Other State"</p>').addClass("cenotice"));
 
 				// if multiple (returned comma delineated string)
 			} else if (typeof courseExclPostId === "string") {
@@ -128,8 +111,10 @@ jQuery(document).ready(function($) {
 					nodeString += nodeStringHolder;
 					// disable href
 					$(courseId).removeAttr('href');
+					// remove "grow" hover effect
+					$(courseId + " p:first").removeClass('hvr-grow');
 					// notice below each product
-					$(courseId).after($('<p>Course not for CE credit\nPlease select "Other State"</p>').addClass("cenotice"));
+					$(courseId).after($('<p style="color:#c6000c">Course not for CE credit\nPlease select "Other State"</p>').addClass("cenotice"));
 				})
 				// append closing tag, append to <head>
 				nodeString += "{opacity: .3} </style>"
@@ -137,4 +122,5 @@ jQuery(document).ready(function($) {
 			}
 		}
 	})
+
 })

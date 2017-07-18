@@ -12,8 +12,8 @@ License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 */
 defined( 'ABSPATH' ) or exit;
-define( 'ZH_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
-define( 'ZH_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define( 'PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 add_action( 'plugins_loaded', 'zh_wc_widget' );
 
 class ZH_WC_Widget {
@@ -25,109 +25,117 @@ class ZH_WC_Widget {
 		return self::$instance;
 	}
 
-	protected $affiliate = 'test-category';
-
 	public function __construct() {
-		add_action( 'template_redirect', array($this, 'catch_widget_query' ));
-		add_filter( 'query_vars', array($this, 'add_query_vars' ));
-		add_action( 'woocommerce_checkout_update_order_meta', array($this, 'track_affiliate' ), 10, 2);
+		add_action( 'template_redirect', array( $this, 'catch_widget_query' ));
+		add_filter( 'query_vars', array( $this, 'add_query_vars' ));
+		add_action( 'woocommerce_checkout_update_order_meta', array( $this, 'track_affiliate' ), 10, 2);
+		add_action( 'init', array( $this, 'start_session' ), 1);
 	}
+
+	// echo get_post_meta( get_the_ID(), 'main-heading', true );
 
 	// TODO: include a banner that is displayed on first install
 
+	function start_session() {
+    if(!session_id()) {
+        session_start();
+    }
+	}
+
 	function add_query_vars($aVars) {
-		$aVars[] = "zh-widget"; // represents the name of the widget page as shown in the URL
-		$aVars[] = "zh-affiliate";
-		$aVars[] = "zh-category";
-		$aVars[] = "zh-tag";
-		$aVars[] = "zh-product-id";
-		$aVars[] = "zh-ref-url";
-		$aVars[] = "zh-atc";
-		$aVars[] = "zh-cart-remove";
+		$aVars[] = "widget"; // represents the name of the current widget page as shown in the URL
+		$aVars[] = "affiliate";
+		$aVars[] = "category";
+		$aVars[] = "columns";
+		$aVars[] = "tag";
+		$aVars[] = "product-id";
+		$aVars[] = "ref-url";
+		$aVars[] = "atc";
+		$aVars[] = "cart-remove";
 		return $aVars;
 	}
 
 	public function track_affiliate( $order_id, $posted ) {
 		$order = wc_get_order( $order_id );
-    $order->update_meta_data( 'zh_affiliate', $this->affiliate );
+    $order->update_meta_data( 'affiliate', $_SESSION['affiliate'] );
     $order->save();
-	}
-
-	public function cartBackToAffiliateStorePage() {
-		?>
-			<div class="text-left">
-				<a href="<?php echo get_permalink( wc_get_page_id('shop')) ?>?zh-widget=store&amp;zh-affiliate=<?php echo $this->affiliate ?>" class="zh-button zh-button-left">Continue Shopping</a>
-			</div>
-		<?php
 	}
 
 	/**
 	 * Catches our query variable. If it's there, we'll stop the
-	 * rest of WordPress from loading and do our thing, whatever
-	 * that may be.
+	 * rest of WordPress from loading and do our thing.
 	 */
 	public function catch_widget_query() {
-		global $woocommerce, $woocommerce_loop, $product, $post;
+		// set persistent variable from snippet settings
+		// define if undefined
+		if (!isset($_SESSION['affiliate'])) { $_SESSION['affiliate'] = get_query_var('affiliate'); }
+		$affiliate = $_SESSION['affiliate'];
+		// set if undefined or not empty string (capture changes)
+		if (!isset($_SESSION['columns']) || (get_query_var('columns') != "")) { $_SESSION['columns'] = get_query_var('columns'); }
+		$columns = $_SESSION['columns'];
 
-		/* If no 'zh-widget' parameter found, return */
-    if(!get_query_var('zh-widget')) return;
+		/* If no 'widget' parameter found, return */
+    if (!get_query_var('widget')) return;
 
-    /* 'zh-widget' variable is set, export any content you like */
-    if(get_query_var('zh-widget') == 'store') {
+    /* 'widget' variable is set, export any content you like */
+    if (get_query_var('widget') == 'store') {
 			include 'templates/widget-header.php';
 
 			$args = array(
         'status'         => array( 'draft', 'pending', 'private', 'publish' ),
         'type'           => array_merge( array_keys( wc_get_product_types() ) ),
-        'parent'         => null,
-        'sku'            => '',
-        'category'       => $this->affiliate,
+        'category'       => $affiliate,
         'tag'            => array(),
         'limit'          => get_option( 'posts_per_page' ),
-        'offset'         => null,
         'page'           => 1,
-        'include'        => array(),
-        'exclude'        => array(),
         'orderby'        => 'title',
         'order'          => 'ASC',
         'return'         => 'objects',
         'paginate'       => false,
-        'shipping_class' => array(),
     	);
 
-			$zh_products = wc_get_products( $args );
-			$i = 0;
+			$products = wc_get_products( $args );
+
 
 			 {
 				?>
 
 				<div class="cart row d-flex justify-content-end py-3">
-					<a class="zh-button" href="<?php echo WC()->cart->get_cart_url(); ?>?zh-widget=cart">
+					<a class="button" href="<?php echo WC()->cart->get_cart_url(); ?>?widget=cart">
 						Cart <i class="fa fa-shopping-cart" aria-hidden="true"></i>
 					</a>
 				</div>
 
 				<!-- Affiliate Courses -->
-				<div class="row py-3">
-						<?php foreach ($zh_products as $zh_product) : ?>
-						<div class="col-3 text-center">
-							<a href="<?php echo $zh_product->get_permalink(); ?>?zh-widget=product&amp;zh-product-id=<?php echo $zh_product->get_id(); ?>" class="product-link">
-								<p><?php echo $zh_product->get_image(); ?></p>
-								<h5 class="product-title"><?php echo $zh_product->get_title(); ?></h5>
+					<?php
+						$i = 0;
+						foreach ($products as $product) :
+						if ($i == 0) {
+							echo '<div class="row py-3">';
+						} elseif ($i%$columns == 0) {
+							echo '</div><div class="row py-3">';
+						}
+						?>
+						<div class="col-<?php echo 12 / $columns ?> text-center">
+							<a href="<?php echo $product->get_permalink(); ?>?widget=product&amp;product-id=<?php echo $product->get_id(); ?>" class="product-link">
+								<p class="hvr-grow"><?php echo $product->get_image(); ?></p>
+								<p class="product-title"><?php echo $product->get_title(); ?></p>
 							</a>
-								<p class="product-price">$<?php echo $zh_product->get_price(); ?></p>
-							<p><a href="<?php echo WC()->cart->get_cart_url(); ?>?zh-widget=cart&amp;zh-product-id=<?php echo $zh_product->get_id();?>&amp;zh-atc=true" class="zh-button zh-button-right" role="button">Add to Cart</a></p>
+							<p class="product-price">$<?php echo $product->get_price(); ?></p>
+							<p><a href="<?php echo WC()->cart->get_cart_url(); ?>?widget=cart&amp;product-id=<?php echo $product->get_id();?>&amp;atc=true" class="button button-right" role="button">Add to Cart</a></p>
 					</div>
 						<?php
 							$i++;
-    					if ($i%4 == 0) echo '</div><div class="row py-3">';
 						endforeach;
 						?>
 				</div>
+			</div>
 
-<?php
-$zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
-?>
+			<div class="container-fluid">
+
+		<?php
+		$kn_products = wc_get_products( array( 'category' => "keynote", 'orderby' => 'title', 'order' => 'ASC' ) );
+		?>
 				<!-- Keynote Courses -->
 				<h3>Keynote Courses</h3>
 				<p>Choose a state and Keynote Course below to be redirected to the Keynote Series page</p>
@@ -154,21 +162,27 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 						</select>
 					</p>
 				</form>
-				<div class="row py-3">
-						<?php foreach ($zh_kn_products as $zh_kn_product) : ?>
-						<div class="col-3 text-center">
-							<a href="/#" class="kn-product-link" id="product-<?php echo $zh_kn_product->get_id(); ?>" target="_blank">
-								<p><?php echo $zh_kn_product->get_image(); ?></p>
-								<h5 class="product-title"><?php echo $zh_kn_product->get_title(); ?></h5>
-							</a>
-					</div>
-						<?php
-							$i++;
-							if ($i%4 == 0) echo '</div><div class="row py-3">';
-						endforeach;
-						?>
-				</div>
 
+				<?php
+					$i = 0;
+					foreach ($kn_products as $kn_product) :
+					if ($i == 0) {
+						echo '<div class="row py-3">';
+					} elseif ($i%$columns == 0) {
+						echo '</div><div class="row py-3">';
+					}
+				?>
+				<div class="col-<?php echo 12 / $columns ?> text-center">
+					<a href="/#" class="kn-product-link" id="product-<?php echo $kn_product->get_id(); ?>" target="_blank">
+						<p class="hvr-grow"><?php echo $kn_product->get_image(); ?></p>
+						<p class="product-title"><?php echo $kn_product->get_title(); ?></p>
+					</a>
+			</div>
+				<?php
+					$i++;
+					endforeach;
+				?>
+				</div>
 				<?php
 
 
@@ -180,38 +194,38 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 
 
 
-		elseif(get_query_var('zh-widget') == 'product') {
+		elseif(get_query_var('widget') == 'product') {
 			include 'templates/widget-header.php';
-			$zh_product = wc_get_product(get_query_var('zh-product-id'));
+			$product = wc_get_product(get_query_var('product-id'));
 
 			?>
 			<div class="row d-flex justify-content-between">
 				<div class="py-3">
-					<a href="<?php echo get_permalink( wc_get_page_id('shop')) ?>?zh-widget=store&amp;zh-affiliate=<?php echo $this->affiliate ?>" class="zh-button zh-button-left">Return to Store</a>
+					<a href="<?php echo get_permalink( wc_get_page_id('shop')) ?>?widget=store" class="button button-left">Return to Store</a>
 				</div>
 				<div class="py-3">
-					<a class="zh-button" href="<?php echo WC()->cart->get_cart_url(); ?>?zh-widget=cart">
+					<a class="button" href="<?php echo WC()->cart->get_cart_url(); ?>?widget=cart">
 						Cart <i class="fa fa-shopping-cart" aria-hidden="true"></i>
 					</a>
 				</div>
 			</div>
 
-			<div class="row" id="product-<?php echo $zh_product->get_id(); ?>">
-				<div class="float-left" style="padding-right: 15px" id="product-image-<?php echo $zh_product->get_id(); ?>">
-					<?php echo $zh_product->get_image() ?>
+			<div class="row" id="product-<?php echo $product->get_id(); ?>">
+				<div class="float-left" style="padding-right: 15px" id="product-image-<?php echo $product->get_id(); ?>">
+					<?php echo $product->get_image() ?>
 				</div>
 				<div class="product-summary">
-					<h2 class="product-title"><?php esc_attr_e($zh_product->get_title()); ?></h2>
-					<p class="product-price">$<?php echo $zh_product->get_price(); ?></p>
+					<h2 class="product-title"><?php esc_attr_e($product->get_title()); ?></h2>
+					<p class="product-price">$<?php echo $product->get_price(); ?></p>
 					<p class="product-short-description">
-						<?php echo $zh_product->get_short_description() ?>
+						<?php echo $product->get_short_description() ?>
 					</p>
-					<p><a href="<?php echo WC()->cart->get_cart_url(); ?>?zh-widget=cart&amp;zh-product-id=<?php echo $zh_product->get_id();?>&amp;zh-atc=true" class="zh-button zh-button-right" role="button">Add to Cart</a></p>
+					<p><a href="<?php echo WC()->cart->get_cart_url(); ?>?widget=cart&amp;product-id=<?php echo $product->get_id();?>&amp;atc=true" class="button button-right" role="button">Add to Cart</a></p>
 				</div>
 			</div>
 			<div class="product-description row">
 				<h3>Description</h3>
-				<?php echo $zh_product->get_description(); ?>
+				<?php echo $product->get_description(); ?>
 			</div>
 
 
@@ -222,13 +236,13 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 
 
 
-		elseif(get_query_var('zh-widget') == 'cart') {
+		elseif(get_query_var('widget') == 'cart') {
 			include 'templates/widget-header.php';
-			if (isset($_GET["zh-atc"]) === true && $_GET["zh-atc"] === "true") {
-				WC()->cart->add_to_cart( get_query_var('zh-product-id') );
+			if (isset($_GET["atc"]) === true && $_GET["atc"] === "true") {
+				WC()->cart->add_to_cart( get_query_var('product-id') );
 			}
-			if (isset($_GET["zh-cart-remove"]) === true) {
-				WC()->cart->remove_cart_item( get_query_var("zh-cart-remove") );
+			if (isset($_GET["cart-remove"]) === true) {
+				WC()->cart->remove_cart_item( get_query_var("cart-remove") );
 			}
 
 			// display cart
@@ -236,48 +250,50 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 			$cart = WC()->cart->get_cart();
 
 			if ($cart) {
-			echo self::cartBackToAffiliateStorePage();
-?>
-			<table class="table">
-		    <thead>
-		      <tr>
-		        <th></th>
-		        <th></th>
-		        <th>Product</th>
-						<th>Price</th>
-						<th>Quantity</th>
-						<th>Total</th>
-		      </tr>
-		    </thead>
-		    <tbody>
-			<?php
-				foreach ($cart as $cart_item_key => $cart_item) {
-					$zh_product = $cart_item['data'];
-					$zh_product_remove_url = WC()->cart->get_remove_url($cart_item_key);
-					$zh_product_url = $zh_product->get_permalink();
-					$zh_product_image = $zh_product->get_image(array(32, 32), $attr = array(), $placeholder = true);
-					$zh_product_title = $zh_product->get_title();
-					$zh_product_price = '$' . $zh_product->get_price($context = 'view');
-					$zh_product_quantity = $cart[$cart_item_key]['quantity'];
-					$zh_product_total = '$' . $cart[$cart_item_key]['line_total'];
-					$zh_product_id = $zh_product->get_id();
+			?>
+				<div class="text-left">
+					<a href="<?php echo get_permalink( wc_get_page_id('shop')) ?>?widget=store" class="button button-left">Continue Shopping</a>
+				</div>
+				<table class="table">
+			    <thead>
+			      <tr>
+			        <th></th>
+			        <th></th>
+			        <th>Product</th>
+							<th>Price</th>
+							<th>Quantity</th>
+							<th>Total</th>
+			      </tr>
+			    </thead>
+			    <tbody>
+				<?php
+					foreach ($cart as $cart_item_key => $cart_item) {
+						$product = $cart_item['data'];
+						$product_remove_url = WC()->cart->get_remove_url($cart_item_key);
+						$product_url = $product->get_permalink();
+						$product_image = $product->get_image(array(32, 32), $attr = array(), $placeholder = true);
+						$product_title = $product->get_title();
+						$product_price = '$' . $product->get_price($context = 'view');
+						$product_quantity = $cart[$cart_item_key]['quantity'];
+						$product_total = '$' . $cart[$cart_item_key]['line_total'];
+						$product_id = $product->get_id();
 
-					// TODO: ajax php call to remove item from cart, currently refreshes
+						// TODO: ajax php call to remove item from cart, currently refreshes
+						?>
+
+						<tr id="<?php echo $cart_item_key ?>">
+							<td><a class="cart-remove" href="<?php echo WC()->cart->get_cart_url(); ?>?widget=cart&amp;cart-remove=<?php echo $cart_item_key?>"><i class="fa fa-times cart-remove-icon" aria-hidden="true"></i></a></td>
+							<td><a href="<?php echo $product_url ?>?widget=product&amp;product-id=<?php echo $product_id ?>"><?php echo $product_image ?></a></td>
+							<td><a href="<?php echo $product_url ?>?widget=product&amp;product-id=<?php echo $product_id ?>"><?php echo $product_title ?></a></td>
+							<td><?php echo $product_price; ?></td>
+							<td><?php echo $product_quantity;; ?></td>
+							<td><?php echo $product_total; ?></td>
+						</tr>
+						<?php
+					}
 					?>
-
-					<tr id="<?php echo $cart_item_key ?>">
-						<td><a class="zh-cart-remove" href="<?php echo WC()->cart->get_cart_url(); ?>?zh-widget=cart&amp;zh-cart-remove=<?php echo $cart_item_key?>"><i class="fa fa-times zh-cart-remove-icon" aria-hidden="true"></i></a></td>
-						<td><a href="<?php echo $zh_product_url ?>?zh-widget=product&amp;zh-product-id=<?php echo $zh_product_id ?>"><?php echo $zh_product_image ?></a></td>
-						<td><a href="<?php echo $zh_product_url ?>?zh-widget=product&amp;zh-product-id=<?php echo $zh_product_id ?>"><?php echo $zh_product_title ?></a></td>
-						<td><?php echo $zh_product_price; ?></td>
-						<td><?php echo $zh_product_quantity;; ?></td>
-						<td><?php echo $zh_product_total; ?></td>
-					</tr>
-					<?php
-				}
-				?>
-			</tbody>
-			</table>
+				</tbody>
+				</table>
 			<?php
 
 			// Added onclick redirect for parent website for now
@@ -290,7 +306,7 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 					   Total: <?php echo WC()->cart->get_cart_total(); ?></p>
 
 					<div class="checkout">
-						<a class="zh-button zh-button-right" onclick="window.top.location.href = '<?php echo WC()->cart->get_checkout_url(); ?>'" href="<?php echo WC()->cart->get_checkout_url(); ?>?zh-widget=checkout">Checkout</a>
+						<a class="button button-right" onclick="window.top.location.href = '<?php echo WC()->cart->get_checkout_url(); ?>'" href="<?php echo WC()->cart->get_checkout_url(); ?>?widget=checkout">Checkout</a>
 					</div>
 				</div>
 			</div>
@@ -299,7 +315,7 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 			?>
 			<p>Your cart is currently empty.</p>
 			<div>
-				<a href="<?php echo get_permalink( wc_get_page_id('shop')) ?>?zh-widget=store&amp;zh-affiliate=<?php echo $this->affiliate ?>" class="zh-button zh-button-left">Return to Store</a>
+				<a href="<?php echo get_permalink( wc_get_page_id('shop')) ?>?widget=store" class="button button-left">Return to Store</a>
 			</div>
 			<?php
 
@@ -309,7 +325,7 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 
 
 
-		elseif(get_query_var('zh-widget') == 'checkout') {
+		elseif(get_query_var('widget') == 'checkout') {
 			include 'templates/widget-header.php';
 			?>
 			<h1>YOU WILL BE REDIRECTED TO MPL WEBSITE WITHIN 5 SECONDS</h1>
@@ -320,17 +336,17 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 			$cart = WC()->cart->get_cart();
 			echo '<h2>Your Order</h2>';
 			foreach ($cart as $cart_item_key => $cart_item) {
-				$zh_product = $cart_item['data'];
-				$zh_product_title = $zh_product->get_title();
-				$zh_product_quantity = $cart[$cart_item_key]['quantity'];
-				$zh_product_total = '$' . $cart[$cart_item_key]['line_total'];
+				$product = $cart_item['data'];
+				$product_title = $product->get_title();
+				$product_quantity = $cart[$cart_item_key]['quantity'];
+				$product_total = '$' . $cart[$cart_item_key]['line_total'];
 
 				?>
 
 				<?php
-				echo $zh_product_title;
-				echo $zh_product_quantity;
-				echo $zh_product_total;
+				echo $product_title;
+				echo $product_quantity;
+				echo $product_total;
 			}
 			?>
 
@@ -340,10 +356,10 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 			include 'templates/widget-footer.php';
 		}
 
-			// TODO: non working stuff for iframed checkout page
+			// TODO: non working stuff for checkout page
 
-			// $zh_order = new WC_Order;
-			// d($zh_order);
+			// $order = new WC_Order;
+			// d($order);
 
 
 			// include woocommerce-braintree-payment-gateway.php;
@@ -398,21 +414,21 @@ $zh_kn_products = wc_get_products( array( 'category'=> "keynote" ) );
 
 			// d(wc_braintree());
 			//
-			// $zh_gateway = wc_braintree();
-			// d($zh_gateway->get_gateway_ids());
-			// d($zh_gateway->get_gateway($gateway_id = null));
-			// $zh_order_id = absint( $_GET['order'] );
-			// $zh_order    = wc_get_order( $order_id );
+			// $gateway = wc_braintree();
+			// d($gateway->get_gateway_ids());
+			// d($gateway->get_gateway($gateway_id = null));
+			// $order_id = absint( $_GET['order'] );
+			// $order    = wc_get_order( $order_id );
 
 			// d(WC_Shortcode_Checkout::get());
 			//
-			// d($zh_order->get_formatted_order_total());
-			// d($zh_order->get_address($type = 'billing'));
-			// d($zh_order->get_payment_method($context = 'view'));
-			// d($zh_order->get_payment_method_title($context = 'view'));
-			// d($zh_order->get_items($types = 'line_item'));
-			// d($zh_order_id);
-			// d($zh_order);
+			// d($order->get_formatted_order_total());
+			// d($order->get_address($type = 'billing'));
+			// d($order->get_payment_method($context = 'view'));
+			// d($order->get_payment_method_title($context = 'view'));
+			// d($order->get_items($types = 'line_item'));
+			// d($order_id);
+			// d($order);
 
 			// $checkout_url = WC()->cart->get_checkout_url();
 			// $payment_page = WC_Order::get_checkout_payment_url();

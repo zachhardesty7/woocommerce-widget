@@ -8,7 +8,7 @@
 					Sorry, an error has occured with the widget - requested page not found!
 				</div>
 				<div class="error-actions">
-					<a href="<?php echo get_permalink( wc_get_page_id('shop')) ?>?zh-widget=store&amp;zh-affiliate=<?php echo $this->affiliate ?>" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-home"></span>
+					<a href="<?php echo get_permalink( wc_get_page_id('shop')) ?>?widget=store" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-home"></span>
 	          Take Me Back to the Store</a><a href="mailto:zach@markporterlive.com" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-envelope"></span> Contact Support </a>
 				</div>
 			</div>

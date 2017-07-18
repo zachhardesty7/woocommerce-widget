@@ -25,6 +25,10 @@ a:hover {
 	transition: .15s;
 }
 
+.cenotice {
+	color: #c6000c;
+}
+
 .product-title {
 	color: black;
 	font-size: 18px;

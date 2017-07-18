@@ -94,7 +94,7 @@ jQuery(document).ready(function($) {
 				// remove "grow" hover effect
 				$(courseId + " p:first").removeClass('hvr-grow');
 				// notice below each product
-				$(courseId).after($('<p style="color:#c6000c">Course not for CE credit\nPlease select "Other State"</p>').addClass("cenotice"));
+				$(courseId).after($('<p>Course not for CE credit<br>Please select "Other State"</p>').addClass("cenotice"));
 
 				// if multiple (returned comma delineated string)
 			} else if (typeof courseExclPostId === "string") {
@@ -114,7 +114,7 @@ jQuery(document).ready(function($) {
 					// remove "grow" hover effect
 					$(courseId + " p:first").removeClass('hvr-grow');
 					// notice below each product
-					$(courseId).after($('<p style="color:#c6000c">Course not for CE credit\nPlease select "Other State"</p>').addClass("cenotice"));
+					$(courseId).after($('<p>Course not for CE credit<br>Please select "Other State"</p>').addClass("cenotice"));
 				})
 				// append closing tag, append to <head>
 				nodeString += "{opacity: .3} </style>"

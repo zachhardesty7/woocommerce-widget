@@ -99,7 +99,7 @@
 			if (dynamic) {
 				let script = document.createElement( 'script' );
 				script.type = 'text/javascript';
-				script.src = 'https://dev.markporterlive.com/wp-content/plugins/woocommerce-widget/iframeResizer.min.js';
+				script.src = 'https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.14/iframeResizer.min.js';
 				$("body")[0].appendChild( script );
 			}
 

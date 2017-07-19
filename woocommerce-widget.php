@@ -112,6 +112,7 @@ class ZH_WC_Widget {
 	 * @link http://thestizmedia.com/custom-post-type-filter-admin-custom-taxonomy/
 	 */
 	function filter_orders_by_affiliate($query) {
+		global $pagenow;
 		// if on admin order page and affiliate option received
 		// set query vars to affiliate data
 		$current_page = isset( $_GET['post_type'] ) ? $_GET['post_type'] : '';

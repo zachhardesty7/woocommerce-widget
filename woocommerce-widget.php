@@ -46,54 +46,53 @@ class ZH_WC_Widget {
 		// sort affiliate column
 		add_action( 'pre_get_posts', array( $this, 'sort_by_affiliate'), 1 );
 
+		// display orders by affiliate
+		add_action('restrict_manage_posts', array( $this, 'display_orders_by_affiliate' ));
 
-
-		add_action('restrict_manage_posts', array( $this, 'tsm_filter_post_type_by_taxonomy' ));
-		add_filter('parse_query', array( $this, 'tsm_convert_id_to_term_in_query' ));
+		// filter orders by affiliate
+		add_filter('parse_query', array( $this, 'filter_orders_by_affiliate' ));
 
 	}
 
-
-
-
-
 	/**
-	 * Display Affiliate dropdown on admin orders page
-	 * @author Mike Hemberger
+	 * Display affiliate dropdown on admin orders page
 	 * @link http://thestizmedia.com/custom-post-type-filter-admin-custom-taxonomy/
 	 */
-	function tsm_filter_post_type_by_taxonomy() {
+	function display_orders_by_affiliate() {
 		// TODO: find proper way of retrieving affiliates; likely through WPDB query
 
-
+		// initialize array for affiliates visible on current page
 		$visible_affiliates = array();
 
+		// get all visible orders with an affiliate
 		$orders = wc_get_orders(array(
 			'limit'    => -1,
 			'meta_key'     => 'affiliate'));
 
-			/** Ensure there are options to show */
+		// escape if no matching orders
 		if(empty($orders))
 			return;
 
-			/** Grab all of the options that should be shown */
-			foreach($orders as $order) :
-				foreach ( $order->get_data()['meta_data'] as $value ) {
-					if ($value->key == 'affiliate' && !in_array($value->value, $visible_affiliates)) {
-						array_push($visible_affiliates, $value->value);
-					}
+		// push all order affiliates into array checking for duplicity
+		foreach($orders as $order) :
+			// cycle meta data to capture affiliate data
+			foreach ( $order->get_data()['meta_data'] as $value ) {
+				// push to array if not already in array
+				if ($value->key == 'affiliate' && !in_array($value->value, $visible_affiliates)) {
+					array_push($visible_affiliates, $value->value);
 				}
-			endforeach;
+			}
+		endforeach;
 
-
+		// if more affiliates now than session value, update session value
 		if ( !isset($_SESSION['affiliates']) || (count($_SESSION['affiliates']) < count($visible_affiliates) ) ) {
 			$_SESSION['affiliates'] = $visible_affiliates;
 		}
 		$affiliates = $_SESSION['affiliates'];
 
-
-
+		// dropdown placeholder for no filter
 		$options[] = sprintf('<option value="">%1$s</option>', __('All Affiliates', 'your-text-domain'));
+		// create option for each affiliate, set selected if currently filtering affiliate
 		foreach ($affiliates as $affiliate) {
 			if ($affiliate == $_GET['affiliate']) {
 				$options[] = sprintf('<option selected value="%1$s">%2$s</option>', esc_attr($affiliate), $affiliate);
@@ -102,52 +101,32 @@ class ZH_WC_Widget {
 			}
 		}
 
-		/** Output the dropdown menu */
+		// output dropdown filter menu
 		echo '<select class="" id="affiliate" name="affiliate">';
 		echo join("\n", $options);
 		echo '</select>';
 	}
 
 	/**
-	 * Filter posts by taxonomy in admin
-	 * @author  Mike Hemberger
+	 * Filter posts by affiliate in admin
 	 * @link http://thestizmedia.com/custom-post-type-filter-admin-custom-taxonomy/
 	 */
-	function tsm_convert_id_to_term_in_query($query) {
-		global $pagenow;
+	function filter_orders_by_affiliate($query) {
+		// if on admin order page and affiliate option received
+		// set query vars to affiliate data
 		$current_page = isset( $_GET['post_type'] ) ? $_GET['post_type'] : '';
-
 		if ( is_admin() &&
 			'shop_order' == $current_page &&
 			'edit.php' == $pagenow &&
 			 isset( $_GET['affiliate'] ) &&
 			 $_GET['affiliate'] != '' ) {
 
-		 $affiliate = $_GET['affiliate'];
-		 PC::debug($affiliate);
-		 $query->query_vars['meta_key'] = 'affiliate';
-		 $query->query_vars['meta_value'] = $affiliate;
-		 $query->query_vars['meta_compare'] = '=';
+			$affiliate = $_GET['affiliate'];
+			$query->query_vars['meta_key'] = 'affiliate';
+			$query->query_vars['meta_value'] = $affiliate;
+			$query->query_vars['meta_compare'] = '=';
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	/**
 	 * Add affiliate column

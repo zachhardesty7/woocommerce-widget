@@ -55,6 +55,95 @@ class ZH_WC_Widget {
 	}
 
 	/**
+	 * Add affiliate column
+	 *
+	 * @since 1.0
+	 * @param array $columns associative array of column id to display name
+	 * @return array of column id to display name
+	 * @credit WC Admin Custom Order Fields Plugin
+	 */
+	public function render_affiliate_column( $columns ) {
+			// TODO: reorder fields
+
+			// get all columns up to but excluding the 'order_actions' column
+			$new_columns = array();
+			foreach ( $columns as $name => $value ) {
+				if ( $name == 'order_actions' ) {
+					prev( $columns );
+					break;
+				}
+				$new_columns[ $name ] = $value;
+			}
+			// inject affiliate column
+			$new_columns['affiliate'] = 'Affiliate';
+			// add the 'order_actions' column, and any others
+			foreach ( $columns as $name => $value ) {
+				$new_columns[ $name ] = $value;
+			}
+			return $new_columns;
+		}
+
+	/**
+	 * Display the value for the affiliate column
+	 *
+	 * @since 1.0
+	 * @param string $column the column name
+	 * @credit WC Admin Custom Order Fields Plugin
+	 */
+	public function render_affiliate_column_data( $column ) {
+			global $post;
+			if ($column == "affiliate") {
+				// get WC order object from post ID
+				$order_id = $post->ID;
+				$order = $order_id ? wc_get_order( $order_id ) : null;
+				// cycle meta data to capture affiliate data
+				foreach ( $order->get_data()['meta_data'] as $value ) {
+					if ($value->key == 'affiliate') {
+						$affiliate = $value->value;
+					}
+				}
+				if ( isset($affiliate) ) echo $affiliate;
+			}
+		}
+
+	/**
+	 * Make affiliate column sortable
+	 *
+	 * @since 1.0
+	 * @param array $columns associative array of column name to id
+	 * @return array of column name to id
+	 * @credit WC Admin Custom Order Fields Plugin
+	 */
+	public function add_affiliate_sortable_columns( $columns ) {
+		$columns[ 'affiliate' ] = 'affiliate';
+		return $columns;
+	}
+
+	/**
+		* Sort affiliate column
+		*
+		* @since 1.0
+		* @param array $columns associative array of column id to display name
+	 * @credit https://wpdreamer.com/2014/04/how-to-make-your-wordpress-admin-columns-sortable/
+	 */
+	function sort_by_affiliate( $query ) {
+	 /**
+		* We only want our code to run in the main WP query
+		* AND if an orderby query variable is designated.
+		*/
+	 if ( $query->is_main_query() && ( $orderby = $query->get( 'orderby' ) ) ) {
+			if ($orderby == 'affiliate') {
+				// set our query's meta_key, which is used for custom fields
+				$query->set( 'meta_key', 'affiliate' );
+				/**
+				* Tell the query to order by our custom field/meta_key's value
+				*/
+				$query->set( 'orderby', 'meta_value' );
+			}
+		}
+	}
+
+	/**
 	 * Display affiliate dropdown on admin orders page
 	 * @link http://thestizmedia.com/custom-post-type-filter-admin-custom-taxonomy/
 	 */
@@ -129,95 +218,6 @@ class ZH_WC_Widget {
 		}
 	}
 
-	/**
-	 * Add affiliate column
-	 *
-	 * @since 1.0
-	 * @param array $columns associative array of column id to display name
-	 * @return array of column id to display name
-	 * @credit WC Admin Custom Order Fields Plugin
-	 */
-	public function render_affiliate_column( $columns ) {
-			// TODO: reorder fields
-
-			// get all columns up to but excluding the 'order_actions' column
-			$new_columns = array();
-			foreach ( $columns as $name => $value ) {
-				if ( $name == 'order_actions' ) {
-					prev( $columns );
-					break;
-				}
-				$new_columns[ $name ] = $value;
-			}
-			// inject affiliate column
-			$new_columns['affiliate'] = 'Affiliate';
-			// add the 'order_actions' column, and any others
-			foreach ( $columns as $name => $value ) {
-				$new_columns[ $name ] = $value;
-			}
-			return $new_columns;
-		}
-
-	/**
-	 * Display the value for the affiliate column
-	 *
-	 * @since 1.0
-	 * @param string $column the column name
-	 * @credit WC Admin Custom Order Fields Plugin
-	 */
-	public function render_affiliate_column_data( $column ) {
-			global $post;
-			if ($column == "affiliate") {
-				// get WC order object from post ID
-				$order_id = $post->ID;
-				$order = $order_id ? wc_get_order( $order_id ) : null;
-				// cycle meta data to capture affiliate data
-				foreach ( $order->get_data()['meta_data'] as $value ) {
-					if ($value->key == 'affiliate') {
-						$affiliate = $value->value;
-					}
-				}
-				if ( isset($affiliate) ) echo $affiliate;
-			}
-		}
-
-	/**
-	 * Make affiliate column sortable
-	 *
-	 * @since 1.0
-	 * @param array $columns associative array of column name to id
-	 * @return array of column name to id
-	 * @credit WC Admin Custom Order Fields Plugin
-	 */
-	public function add_affiliate_sortable_columns( $columns ) {
-		$columns[ 'affiliate' ] = 'affiliate';
-		return $columns;
-	}
-
-	/**
-		* Sort affiliate column
-		*
-		* @since 1.0
-		* @param array $columns associative array of column id to display name
-	 * @credit https://wpdreamer.com/2014/04/how-to-make-your-wordpress-admin-columns-sortable/
-	 */
-	function sort_by_affiliate( $query ) {
-			 /**
-				* We only want our code to run in the main WP query
-				* AND if an orderby query variable is designated.
-				*/
-			 if ( $query->is_main_query() && ( $orderby = $query->get( 'orderby' ) ) ) {
-					if ($orderby == 'affiliate') {
-						// set our query's meta_key, which is used for custom fields
-						$query->set( 'meta_key', 'affiliate' );
-						/**
-						* Tell the query to order by our custom field/meta_key's value
-						*/
-						$query->set( 'orderby', 'meta_value' );
-					}
-			 }
-		}
-
 	// echo get_post_meta( get_the_ID(), 'main-heading', true );
 
 	// TODO: include a banner that is displayed on first install
@@ -253,8 +253,8 @@ class ZH_WC_Widget {
 	 * rest of WordPress from loading and do our thing.
 	 */
 	public function catch_widget_query() {
-		session_unset();
-		session_destroy();
+		// session_unset();
+		// session_destroy();
 		// set persistent variable from snippet settings
 		// define if undefined
 		if ( !isset($_SESSION['affiliate']) || $_SESSION['affiliate'] != get_query_var('affiliate') ) {

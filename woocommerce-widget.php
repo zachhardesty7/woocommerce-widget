@@ -45,17 +45,119 @@ class ZH_WC_Widget {
 
 		// sort affiliate column
 		add_action( 'pre_get_posts', array( $this, 'sort_by_affiliate'), 1 );
+
+
+
+		add_action('restrict_manage_posts', array( $this, 'tsm_filter_post_type_by_taxonomy' ));
+		add_filter('parse_query', array( $this, 'tsm_convert_id_to_term_in_query' ));
+
 	}
 
-		/**
-		 * Add affiliate column
-		 *
-		 * @since 1.0
-		 * @param array $columns associative array of column id to display name
-		 * @return array of column id to display name
-		 * @credit WC Admin Custom Order Fields Plugin
-		 */
-		public function render_affiliate_column( $columns ) {
+
+
+
+
+	/**
+	 * Display Affiliate dropdown on admin orders page
+	 * @author Mike Hemberger
+	 * @link http://thestizmedia.com/custom-post-type-filter-admin-custom-taxonomy/
+	 */
+	function tsm_filter_post_type_by_taxonomy() {
+		// TODO: find proper way of retrieving affiliates; likely through WPDB query
+
+
+		$visible_affiliates = array();
+
+		$orders = wc_get_orders(array(
+			'limit'    => -1,
+			'meta_key'     => 'affiliate'));
+
+			/** Ensure there are options to show */
+		if(empty($orders))
+			return;
+
+			/** Grab all of the options that should be shown */
+			foreach($orders as $order) :
+				foreach ( $order->get_data()['meta_data'] as $value ) {
+					if ($value->key == 'affiliate' && !in_array($value->value, $visible_affiliates)) {
+						array_push($visible_affiliates, $value->value);
+					}
+				}
+			endforeach;
+
+
+		if ( !isset($_SESSION['affiliates']) || (count($_SESSION['affiliates']) < count($visible_affiliates) ) ) {
+			$_SESSION['affiliates'] = $visible_affiliates;
+		}
+		$affiliates = $_SESSION['affiliates'];
+
+
+
+		$options[] = sprintf('<option value="">%1$s</option>', __('All Affiliates', 'your-text-domain'));
+		foreach ($affiliates as $affiliate) {
+			if ($affiliate == $_GET['affiliate']) {
+				$options[] = sprintf('<option selected value="%1$s">%2$s</option>', esc_attr($affiliate), $affiliate);
+			} else {
+				$options[] = sprintf('<option value="%1$s">%2$s</option>', esc_attr($affiliate), $affiliate);
+			}
+		}
+
+		/** Output the dropdown menu */
+		echo '<select class="" id="affiliate" name="affiliate">';
+		echo join("\n", $options);
+		echo '</select>';
+	}
+
+	/**
+	 * Filter posts by taxonomy in admin
+	 * @author  Mike Hemberger
+	 * @link http://thestizmedia.com/custom-post-type-filter-admin-custom-taxonomy/
+	 */
+	function tsm_convert_id_to_term_in_query($query) {
+		global $pagenow;
+		$current_page = isset( $_GET['post_type'] ) ? $_GET['post_type'] : '';
+
+		if ( is_admin() &&
+			'shop_order' == $current_page &&
+			'edit.php' == $pagenow &&
+			 isset( $_GET['affiliate'] ) &&
+			 $_GET['affiliate'] != '' ) {
+
+		 $affiliate = $_GET['affiliate'];
+		 PC::debug($affiliate);
+		 $query->query_vars['meta_key'] = 'affiliate';
+		 $query->query_vars['meta_value'] = $affiliate;
+		 $query->query_vars['meta_compare'] = '=';
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/**
+	 * Add affiliate column
+	 *
+	 * @since 1.0
+	 * @param array $columns associative array of column id to display name
+	 * @return array of column id to display name
+	 * @credit WC Admin Custom Order Fields Plugin
+	 */
+	public function render_affiliate_column( $columns ) {
 			// TODO: reorder fields
 
 			// get all columns up to but excluding the 'order_actions' column
@@ -76,14 +178,14 @@ class ZH_WC_Widget {
 			return $new_columns;
 		}
 
-		/**
-		 * Display the value for the affiliate column
-		 *
-		 * @since 1.0
-		 * @param string $column the column name
-		 * @credit WC Admin Custom Order Fields Plugin
-		 */
-		public function render_affiliate_column_data( $column ) {
+	/**
+	 * Display the value for the affiliate column
+	 *
+	 * @since 1.0
+	 * @param string $column the column name
+	 * @credit WC Admin Custom Order Fields Plugin
+	 */
+	public function render_affiliate_column_data( $column ) {
 			global $post;
 			if ($column == "affiliate") {
 				// get WC order object from post ID
@@ -99,27 +201,27 @@ class ZH_WC_Widget {
 			}
 		}
 
-		/**
-		 * Make affiliate column sortable
-		 *
-		 * @since 1.0
-		 * @param array $columns associative array of column name to id
-		 * @return array of column name to id
-		 * @credit WC Admin Custom Order Fields Plugin
-		 */
-		public function add_affiliate_sortable_columns( $columns ) {
-			$columns[ 'affiliate' ] = 'affiliate';
-			return $columns;
-		}
+	/**
+	 * Make affiliate column sortable
+	 *
+	 * @since 1.0
+	 * @param array $columns associative array of column name to id
+	 * @return array of column name to id
+	 * @credit WC Admin Custom Order Fields Plugin
+	 */
+	public function add_affiliate_sortable_columns( $columns ) {
+		$columns[ 'affiliate' ] = 'affiliate';
+		return $columns;
+	}
 
-		/**
-			* Sort affiliate column
-			*
-			* @since 1.0
-			* @param array $columns associative array of column id to display name
-		 * @credit https://wpdreamer.com/2014/04/how-to-make-your-wordpress-admin-columns-sortable/
-		 */
-		function sort_by_affiliate( $query ) {
+	/**
+		* Sort affiliate column
+		*
+		* @since 1.0
+		* @param array $columns associative array of column id to display name
+	 * @credit https://wpdreamer.com/2014/04/how-to-make-your-wordpress-admin-columns-sortable/
+	 */
+	function sort_by_affiliate( $query ) {
 			 /**
 				* We only want our code to run in the main WP query
 				* AND if an orderby query variable is designated.
@@ -140,6 +242,7 @@ class ZH_WC_Widget {
 
 	// TODO: include a banner that is displayed on first install
 
+	// enable php session global
 	function start_session() {
     if(!session_id()) {
         session_start();
@@ -170,12 +273,18 @@ class ZH_WC_Widget {
 	 * rest of WordPress from loading and do our thing.
 	 */
 	public function catch_widget_query() {
+		session_unset();
+		session_destroy();
 		// set persistent variable from snippet settings
 		// define if undefined
-		if (!isset($_SESSION['affiliate'])) { $_SESSION['affiliate'] = get_query_var('affiliate'); }
+		if ( !isset($_SESSION['affiliate']) || $_SESSION['affiliate'] != get_query_var('affiliate') ) {
+			$_SESSION['affiliate'] = get_query_var('affiliate');
+		}
 		$affiliate = $_SESSION['affiliate'];
 		// set if undefined or not empty string (capture changes)
-		if (!isset($_SESSION['columns']) || (get_query_var('columns') != "")) { $_SESSION['columns'] = get_query_var('columns'); }
+		if ( !isset($_SESSION['columns']) || (get_query_var('columns') != "") ) {
+			 $_SESSION['columns'] = get_query_var('columns');
+		 }
 		$columns = $_SESSION['columns'];
 
 		/* If no 'widget' param found, escape to normal WP loading */

@@ -12,7 +12,7 @@ $cart = WC()->cart->get_cart();
 
 if ($cart) {
 ?>
-	<div class="text-left">
+	<div class="text-left pb-3">
 		<a href="<?php echo get_permalink( wc_get_page_id('shop')) ?>?widget=store" class="button button-left">Continue Shopping</a>
 	</div>
 	<table class="table">

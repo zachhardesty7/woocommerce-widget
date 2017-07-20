@@ -31,11 +31,11 @@
 
 jQuery(document).ready(function($) {
 	// initialize constants and selectors
-	let urlDef = "http://keynotecommunity.com/take-course/";
-	let urlBase = "https://www.keynoteseries.com/course_details/";
+	let urlDef             = "http://keynotecommunity.com/take-course/";
+	let urlBase            = "https://www.keynoteseries.com/course_details/";
 	let keynoteCatProducts = $(".kn-product-link");
-	let queryString = "?code=";
-	let affiliate = $('body').data('affiliate');
+	let queryString        = "?code=";
+	let affiliate          = $('body').data('affiliate');
 
 	// dynamic link generation for keynote products
 	function setCoursesUrl(url) {
@@ -44,9 +44,9 @@ jQuery(document).ready(function($) {
 			// append encoded product title (course) to @url
 			if ($('#stateSelectDropdown').val()) {
 				let urlCourse = encodeURI(keynoteCatProducts[i].lastElementChild.textContent);
-				output = url + "\/" + urlCourse + queryString + affiliate;
+				let output    = url + "\/" + urlCourse + queryString + affiliate;
 			}
-			keynoteCatProducts[i].href = output;
+			keynoteCatProducts[i].href   = output;
 			keynoteCatProducts[i].target = "_blank"
 		}
 	}
@@ -72,7 +72,7 @@ jQuery(document).ready(function($) {
 		// else append value of dropdown option to URL and set
 		} else {
 			let urlPartner = $('#stateSelectDropdown').val();
-			let urlNew = urlBase + urlPartner;
+			let urlNew     = urlBase + urlPartner;
 			setCoursesUrl(urlNew);
 
 			// TODO:
@@ -86,7 +86,7 @@ jQuery(document).ready(function($) {
 			// if only 1 (returned integer)
 			if (Number.isInteger(courseExclPostId)) {
 				// append <style>, greys out all children of href
-				let courseId = "#product-" + courseExclPostId;
+				let courseId   = "#product-" + courseExclPostId;
 				let nodeString = "<style id='keynoteCourseDisable'> " + courseId + " > * {opacity: .3} </style>"
 				$(document.head).append(nodeString);
 				// disable href
@@ -105,7 +105,7 @@ jQuery(document).ready(function($) {
 				// for each disabled product ID
 				courseExclPostIds.forEach(function(courseExclPostId, i) {
 					// grey out all children of href
-					let courseId = " #product-" + courseExclPostId;
+					let courseId         = " #product-" + courseExclPostId;
 					let nodeStringHolder = courseId + " > *";
 					if (i != courseExclPostIds.length - 1) nodeStringHolder += ",";
 					nodeString += nodeStringHolder;

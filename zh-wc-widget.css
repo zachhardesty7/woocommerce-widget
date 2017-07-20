@@ -1,9 +1,10 @@
-@-ms-viewport{ width: device-width; }
-
+@-ms-viewport {
+	width: device-width;
+}
 
 .row {
-		margin-right: 0;
-		margin-left: 0;
+	margin-right: 0;
+	margin-left : 0;
 }
 
 a {
@@ -11,18 +12,18 @@ a {
 }
 
 a:link {
-	color: #c6000c;
+	color          : #c6000c;
 	text-decoration: none;
 }
 
 a:visited {
-	color: #c6000c;
+	color          : #c6000c;
 	text-decoration: none;
 }
 
 a:hover {
-	color: #6c000c;
-	transition: .15s;
+	color     : #6c000c;
+	transition: 0.15s;
 }
 
 .cenotice {
@@ -30,24 +31,24 @@ a:hover {
 }
 
 .product-title {
-	color: black;
-	font-size: 18px;
+	color      : black;
+	font-size  : 18px;
 	font-weight: 500;
-	transition: .15s;
+	transition : 0.15s;
 }
 
 .product-title:hover {
-	color: #6c000c;
-	transition: .15s;
+	color     : #6c000c;
+	transition: 0.15s;
 }
 
 .product-price-amount {
-		color: #c6000c;
-		font-size: 24px;
+	color    : #c6000c;
+	font-size: 24px;
 }
 
 .cart-remove-icon {
-	color: #c6000c;
+	color  : #c6000c;
 	opacity: 0.5;
 }
 
@@ -56,81 +57,83 @@ a:hover {
 }
 
 .button {
-	display: inline-block;
-	font-size: 18px;
-	transition: all 0.2s;
-	border: 2px solid #c6000c;
-	padding: 0.2em 1.25em;
-	border-radius: 3px;
-	line-height: 1.7em;
-	text-align: center;
-	color: #c6000c;
+	display        : inline-block;
+	font-size      : 18px;
+	transition     : all 0.2s;
+	border         : 2px solid #c6000c;
+	padding        : 0.2em 1.25em;
+	border-radius  : 3px;
+	line-height    : 1.7em;
+	text-align     : center;
+	color          : #c6000c;
 	text-decoration: none;
 }
 
 .button:hover {
-	background: rgba(0, 0, 0, 0.05);
-	border: 2px solid transparent;
-	color: #c6000c;
+	background     : rgba(0, 0, 0, 0.05);
+	border         : 2px solid transparent;
+	color          : #c6000c;
 	text-decoration: none;
 }
 
 .button-left:hover {
-		padding: 0.2em 1em 0.2em 2em;
+	padding: 0.2em 1em 0.2em 2em;
 }
 
 .button-left:before {
-		position: absolute;
-		margin-top: .1em;
-		font-size: 16px;
-		opacity: 0;
-		font-family: "FontAwesome";
-		content: "\f053";
-		-webkit-transition: all 0.2s;
-		-moz-transition: all 0.2s;
-		transition: all 0.2s;
+	position          : absolute;
+	margin-top        : 0.1em;
+	font-size         : 16px;
+	opacity           : 0;
+	font-family       : "FontAwesome";
+	content           : "\f053";
+	-webkit-transition: all 0.2s;
+	-moz-transition   : all 0.2s;
+	transition        : all 0.2s;
 }
 
 .button-left:hover:before {
-		margin-left: -1.25em;
-		opacity: 1;
+	margin-left: -1.25em;
+	opacity    : 1;
 }
 
 .button-right:hover {
-		padding: 0.2em 2em 0.2em 1em;
+	padding: 0.2em 2em 0.2em 1em;
 }
 
 .button-right:after {
-		position: absolute;
-		font-size: 16px;
-		margin-left: -.5em;
-		margin-top: .1em;
-		opacity: 0;
-		font-family: "FontAwesome";
-		content: "\f054";
-		-webkit-transition: all 0.2s;
-		-moz-transition: all 0.2s;
-		transition: all 0.2s;
+	position          : absolute;
+	font-size         : 16px;
+	margin-left       : -.5em;
+	margin-top        : 0.1em;
+	opacity           : 0;
+	font-family       : "FontAwesome";
+	content           : "\f054";
+	-webkit-transition: all 0.2s;
+	-moz-transition   : all 0.2s;
+	transition        : all 0.2s;
 }
 
 .button-right:hover:after {
-		margin-left: .75em;
-		opacity: 1;
+	margin-left: 0.75em;
+	opacity    : 1;
 }
 
-/* Grow */
 .hvr-grow {
-  display: inline-block;
-  vertical-align: middle;
-  -webkit-transform: perspective(1px) translateZ(0);
-  transform: perspective(1px) translateZ(0);
-  box-shadow: 0 0 1px transparent;
-  -webkit-transition-duration: 0.3s;
-  transition-duration: 0.3s;
-  -webkit-transition-property: transform;
-  transition-property: transform;
+	display                    : inline-block;
+	vertical-align             : middle;
+	-webkit-transform          : perspective(1px) translateZ(0);
+	transform                  : perspective(1px) translateZ(0);
+	box-shadow                 : 0 0 1px transparent;
+	-webkit-transition-duration: 0.3s;
+	transition-duration        : 0.3s;
+	-webkit-transition-property: transform;
+	transition-property        : transform;
 }
-.hvr-grow:hover, .hvr-grow:focus, .hvr-grow:active {
-  -webkit-transform: scale(1.1);
-  transform: scale(1.1);
+
+.hvr-grow:active,
+.hvr-grow:focus,
+.hvr-grow:hover {
+	-webkit-transform: scale(1.1);
+	transform        : scale(1.1);
 }

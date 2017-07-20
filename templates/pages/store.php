@@ -1,21 +1,27 @@
 <?php
+
+// exclude keynote courses from main store
+$excluded_category = wc_get_products( array( 'category' => 'keynote' ) );
+$excluded_products = array();
+
+foreach ($excluded_category as $product) {
+	array_push($excluded_products, $product->get_id());
+}
+
 $args = array(
-	'status'         => array( 'draft', 'pending', 'private', 'publish' ),
-	'type'           => array_merge( array_keys( wc_get_product_types() ) ),
-	'category'       => $affiliate,
-	'tag'            => array(),
-	'limit'          => get_option( 'posts_per_page' ),
-	'page'           => 1,
-	'orderby'        => 'title',
-	'order'          => 'ASC',
-	'return'         => 'objects',
-	'paginate'       => false,
+	'type'     => array_merge( array_keys( wc_get_product_types() ) ),
+	'category' => $category,
+	'tag'      => array(),
+	'limit'    => get_option( 'posts_per_page' ),
+	'page'     => 1,
+	'orderby'  => 'title',
+	'order'    => 'ASC',
+	'paginate' => false,
+	'exclude'  => $excluded_products
 );
 
 $products = wc_get_products( $args );
 
-
- {
 	?>
 
 	<div class="cart row d-flex justify-content-end py-3">
@@ -102,4 +108,3 @@ $kn_products = wc_get_products( array( 'category' => "keynote", 'orderby' => 'ti
 	?>
 	</div>
 	<?php
-}

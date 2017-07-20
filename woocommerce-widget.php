@@ -95,7 +95,7 @@ class ZH_WC_Widget {
 			if ($column == "affiliate") {
 				// get WC order object from post ID
 				$order_id = $post->ID;
-				$order = $order_id ? wc_get_order( $order_id ) : null;
+				$order    = $order_id ? wc_get_order( $order_id ) : null;
 				// cycle meta data to capture affiliate data
 				foreach ( $order->get_data()['meta_data'] as $value ) {
 					if ($value->key == 'affiliate') {
@@ -156,7 +156,7 @@ class ZH_WC_Widget {
 		// get all visible orders with an affiliate
 		$orders = wc_get_orders(array(
 			'limit'    => -1,
-			'meta_key'     => 'affiliate'));
+			'meta_key' => 'affiliate'));
 
 		// escape if no matching orders
 		if(empty($orders))
@@ -207,13 +207,13 @@ class ZH_WC_Widget {
 		$current_page = isset( $_GET['post_type'] ) ? $_GET['post_type'] : '';
 		if ( is_admin() &&
 			'shop_order' == $current_page &&
-			'edit.php' == $pagenow &&
+			'edit.php'   == $pagenow &&
 			 isset( $_GET['affiliate'] ) &&
 			 $_GET['affiliate'] != '' ) {
 
-			$affiliate = $_GET['affiliate'];
-			$query->query_vars['meta_key'] = 'affiliate';
-			$query->query_vars['meta_value'] = $affiliate;
+			$affiliate                         = $_GET['affiliate'];
+			$query->query_vars['meta_key']     = 'affiliate';
+			$query->query_vars['meta_value']   = $affiliate;
 			$query->query_vars['meta_compare'] = '=';
 		}
 	}
@@ -266,6 +266,11 @@ class ZH_WC_Widget {
 			 $_SESSION['columns'] = get_query_var('columns');
 		 }
 		$columns = $_SESSION['columns'];
+		// set if undefined or not empty string (capture changes)
+		if ( !isset($_SESSION['category']) || (get_query_var('category') != "") ) {
+			 $_SESSION['category'] = get_query_var('category');
+		 }
+		$category = $_SESSION['category'];
 
 		/* If no 'widget' param found, escape to normal WP loading */
     if ( !get_query_var('widget') ) return;

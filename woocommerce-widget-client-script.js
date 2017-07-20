@@ -52,28 +52,38 @@
 		jQuery(document).ready(function($) {
 			// capture snippet parameters
 			let widgetInput = document.getElementById("wc-widget");
-			let widget = widgetInput.getAttribute("data-widget");
-			// Affiliate refers to category until properly implemented
-			let affiliate = widgetInput.getAttribute("data-affiliate");
-			let category = widgetInput.getAttribute("data-category");
-			let tag = widgetInput.getAttribute("data-tag");
-			let productId = widgetInput.getAttribute("data-product-id");
-			let columns = widgetInput.getAttribute("data-columns");
-			let ref = encodeURIComponent(window.document.location);
-			let dynamic = widgetInput.getAttribute("data-dynamic");
-			let height = widgetInput.getAttribute("data-height");
-			let width = widgetInput.getAttribute("data-width");
+			let widget      = widgetInput.getAttribute("data-widget");
+			let affiliate   = widgetInput.getAttribute("data-affiliate");
+			let category    = widgetInput.getAttribute("data-category");
+			let tag         = widgetInput.getAttribute("data-tag");
+			let productId   = widgetInput.getAttribute("data-product-id");
+			let columns     = widgetInput.getAttribute("data-columns");
+			let size        = widgetInput.getAttribute("data-size");
+			let ref         = encodeURIComponent(window.document.location);
 
+			// begin iframe creation
 			let iframeContent = '<iframe id="wc-widget-widget"';
-			if (dynamic) iframeContent += 'style="border: none; width: 100%" scrolling="no"';
-			else iframeContent += 'style="border: none" ';
-			if (height) iframeContent += 'height="' + height + '" ';
-			if (width) iframeContent += 'width="' + width + '" ';
+			// set param for dynamic widget
+			if (size == 'dynamic') {
+				iframeContent += 'style="border: none; width: 100%" scrolling="no"';
+			}
+			// or set width and height
+			else if (size) {
+				dimensions = size.split(',');
+				iframeContent += 'width="' + dimensions[0] + '" ';
+				iframeContent += 'height="' + dimensions[1] + '" ';
+				iframeContent += 'style="border: none" ';
+			}
+			else {
+				iframeContent += 'style="border: none" ';
+			}
+			// begin iframe link generation
 			iframeContent += 'src="https://dev.markporterlive.com/?widget=' + widget;
 			if (affiliate) iframeContent += "&affiliate=" + affiliate;
-			if (category) iframeContent += "&category=" + category;
-			if (tag) iframeContent += "&tag=" + tag;
+			if (category) iframeContent  += "&category=" + category;
+			if (tag) iframeContent       += "&tag=" + tag;
 			if (productId) iframeContent += "&product-id=" + productId;
+			// set columns based on width of parent div
 			if (columns == "dynamic") {
 				let width = $("#wc-widget").width();
 				if (width >= 1365 - 16) {
@@ -88,30 +98,35 @@
 					columns = 1;
 				}
 				iframeContent += "&columns=" + columns;
+			// or simply echo snippet params
 			} else if (columns) {
 				iframeContent += "&columns=" + columns;
 			}
+			// referring URL for future data analysis
 			if (ref) iframeContent += "&ref=" + ref;
 
+			// finish iframe creation
 			iframeContent += '"></iframe>';
 
+			// append dynamic iframe resizer script to body
 			// @credit https://github.com/davidjbradshaw/iframe-resizer
-			if (dynamic) {
+			if (size == 'dynamic') {
 				let script = document.createElement( 'script' );
 				script.type = 'text/javascript';
-				script.src = 'https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.14/iframeResizer.min.js';
+				script.src  = 'https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.14/iframeResizer.min.js';
 				$("body")[0].appendChild( script );
 			}
 
+			// append iframe after snippet
 			$("#wc-widget").after(iframeContent);
 
+			// run dynamic iframe resizer once widget has loaded
 			// @credit https://github.com/davidjbradshaw/iframe-resizer
-			if (dynamic) {
+			if (size == 'dynamic') {
 				$('#wc-widget-widget').on('load', function(){
 					iFrameResize({heightCalculationMethod: 'lowestElement'}, '#wc-widget-widget');
 				});
 			}
-
 
 		});
 	}

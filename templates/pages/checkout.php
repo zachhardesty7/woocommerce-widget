@@ -5,10 +5,10 @@
 $cart = WC()->cart->get_cart();
 echo '<h2>Your Order</h2>';
 foreach ($cart as $cart_item_key => $cart_item) {
-	$product = $cart_item['data'];
-	$product_title = $product->get_title();
+	$product          = $cart_item['data'];
+	$product_title    = $product->get_title();
 	$product_quantity = $cart[$cart_item_key]['quantity'];
-	$product_total = '$' . $cart[$cart_item_key]['line_total'];
+	$product_total    = '$' . $cart[$cart_item_key]['line_total'];
 
 	?>
 

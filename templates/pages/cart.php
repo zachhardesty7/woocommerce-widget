@@ -29,15 +29,15 @@ if ($cart) {
 		<tbody>
 	<?php
 		foreach ($cart as $cart_item_key => $cart_item) {
-			$product = $cart_item['data'];
+			$product            = $cart_item['data'];
 			$product_remove_url = WC()->cart->get_remove_url($cart_item_key);
-			$product_url = $product->get_permalink();
-			$product_image = $product->get_image(array(32, 32), $attr = array(), $placeholder = true);
-			$product_title = $product->get_title();
-			$product_price = '$' . $product->get_price($context = 'view');
-			$product_quantity = $cart[$cart_item_key]['quantity'];
-			$product_total = '$' . $cart[$cart_item_key]['line_total'];
-			$product_id = $product->get_id();
+			$product_url        = $product->get_permalink();
+			$product_image      = $product->get_image(array(32, 32), $attr = array(), $placeholder = true);
+			$product_title      = $product->get_title();
+			$product_price      = '$' . $product->get_price($context = 'view');
+			$product_quantity   = $cart[$cart_item_key]['quantity'];
+			$product_total      = '$' . $cart[$cart_item_key]['line_total'];
+			$product_id         = $product->get_id();
 
 			// TODO: ajax php call to remove item from cart, currently refreshes
 			?>
